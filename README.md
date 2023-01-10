@@ -1,1 +1,1 @@
-This is the "src" for torrent-quick-search
+This is the "source" reference in the header of the main torrent quick search repo
