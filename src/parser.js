@@ -1,4 +1,4 @@
-let siteName = window.location.host.match(/([a-z]*).[a-z]*$/)[1];
+let siteName =window.location.host.match(/(.*)\./)[1].replace("www.","")
 let siteParser = getParser();
 async function getIMDB() {
   let imdb = null;
