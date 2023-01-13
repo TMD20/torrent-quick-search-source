@@ -64,7 +64,10 @@ async function getIndexers({searchprogram=GM_config.get("searchprogram"),searcha
   document.querySelector("#torrent-quicksearch-msgnode").textContent =
     "Getting Indexers";
   let indexers = null;
-  if (searchprogram == "Prowlarr") {
+  if(searchapi=="" || searchurl==""){
+    indexer=[]
+  }
+  else if (searchprogram == "Prowlarr") {
     indexers = await getIndexersProwlarr({searchapi:searchapi,searchurl:searchurl});
   } else if (searchprogram == "Jackett") {
     indexers = await getIndexersJackett({searchapi:searchapi,searchurl:searchurl});
@@ -160,7 +163,7 @@ async function getIndexersHydra({searchapi= GM_config.get("searchapi"),searchurl
 }
 
 function getSelectedIndexers(){
-  return GM_config.getValue(`indexers`,[]);
+  return GM_config.getValue(`defaultIndexerVal`,[]);
 }
 
 

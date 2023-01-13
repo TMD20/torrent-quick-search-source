@@ -6,28 +6,13 @@ function setTitleNode() {
 }
 
 async function setIMDBNode() {
-  let imdb = null;
-  //Get Old IMDB
-  if (
-    document.querySelector("#torrent-quicksearch-imdbinfo").textContent !=
-      imdbParserFail &&
-    document.querySelector("#torrent-quicksearch-imdbinfo").textContent
-      .length != 0 &&
-    document.querySelector("#torrent-quicksearch-imdbinfo").textContent !=
-      "None"
-  ) {
-    imdb = document.querySelector("#torrent-quicksearch-imdbinfo").textContent;
-  }
-  //Else get New IMDB
-  else {
-    imdb = await getIMDB();
-    document.querySelector("#torrent-quicksearch-imdbinfo").textContent =
-      imdb || imdbParserFail;
-  }
-  return imdb;
+  let node=document.createElement("div")
+  node.style.display="none"
+  node.setAttribute("id","torrent-quicksearch-imdbinfo")
+  node.textContent =await getIMDB() || imdbParserFail;
+  document.body.children[0].after(node)
 }
 function resetSearchDOM() {
-  document.querySelector("#torrent-quicksearch-imdbinfo").textContent = "None";
   document.querySelector("#torrent-quicksearch-msgnode").textContent =
     "Waiting";
 }
@@ -140,19 +125,29 @@ function addResultsTable(data) {
     <span class="torrent-quicksearch-resultcell" style='display:none' >${
       e["Type"]
     }</span>
-    
+    <span class="torrent-quicksearch-resultcell" style='display:none' >${
+      e["IndexerID"]
+    }</span> 
     `;
-
-    let selNode = node.querySelector("select");
-
-    JSON.parse(GM_config.getValue("downloadClients", "[]")).forEach((e) => {
+    let downloadClients= JSON.parse(GM_config.getValue("downloadClients", "[]"))
+    if (downloadClients.length>0){
+      let selNode = node.querySelector("select");
+      downloadClients.forEach((e) => {
       let optnode = document.createElement("option");
-      optnode.setAttribute("id", e.clientID);
-      optnode.setAttribute("value", e.clientID);
-      optnode.textContent = e.clientName;
-      selNode.appendChild(optnode);
-    });
-    node.querySelector("form").addEventListener("submit", clientFactory(e));
+        optnode.setAttribute("id", e.clientID);
+        optnode.setAttribute("value", e.clientID);
+        optnode.textContent = e.clientName;
+        selNode.appendChild(optnode);
+      });
+      node.querySelector("form").addEventListener("submit", clientFactory(e));
+    }
+    else{
+      let div=document.createElement("div")
+      div.textContent="No Clients"
+      node.querySelector("form").replaceWith(div)
+      div.style.fontSize=`#${GM_config.get("fontsize",12)}px`
+    }
+
     node=filterResults([node])[0]
     tempFrag.append(node);
   });
@@ -184,24 +179,20 @@ function createMainDOM() {
  <div>
   <img id="torrent-quicksearch-toggle" src="${searchIcon}"></img>
 <div id="torrent-quicksearch-box">
+<div id="torrent-quicksearch-msgnode"></div>
 <div id="torrent-quicksearch-content">
-  <div>
-  <div id="torrent-quicksearch-msgnode"></div>
+<div>
   <div id="torrent-quicksearch-custombox">
-        <div>
+    <div>
     <input type="text" id="torrent-quicksearch-customsearch" placeholder="title">
     <button id="torrent-quicksearch-customsearchbutton">Custom Search</button>
-
-     <label>IMDB Match:</label>
-    <div id="torrent-quicksearch-imdbinfo">None</div>
-        </div>
   </div>
-    <div id="torrent-quicksearch-resultheader"></div>
 </div>
-
-
+<div id="torrent-quicksearch-resultheader"></div>
+  </div>
   <div id="torrent-quicksearch-resultlist">
   </div>
+
 
     </div>
 </div>
@@ -302,8 +293,6 @@ function createMainDOM() {
     background-color:#FFFFFF;
     width:calc(var(--grid-size)*${rowSplit});
     display:none;
-  height:calc(((${GM_config.get("fontsize", 12)}em) + 2em)/16);
-
   }
 
      #torrent-quicksearch-custombox {
@@ -524,9 +513,13 @@ box
     });
   document.body.insertBefore(box, document.body.children[0]);
 
+
 }
 
+
+
 function filterResults(nodeArray){
+  let indexerSelection=new Set(filterconfig.get("indexerVal").map(e=> e.ID));
   for(i in nodeArray){
     let nodeElement=nodeArray[i]
     let LSG=nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[3].textContent.split("/")
@@ -536,7 +529,12 @@ function filterResults(nodeArray){
     let size=parseInt(nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[6].textContent.replace("GB","").replace(/ +/g,""))
     let date=Date.parse(nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[5].textContent.split(",")[0])
     let type=nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[8].textContent
-    if(filterconfig.get("torrentDownload")==false&&type=="torrent"){
+    let indexerID=nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[9].textContent
+    if(!indexerSelection.has(indexerID)){
+      nodeElement.setAttribute("class","torrent-quicksearch-hiddenresultitem")
+    }
+ 
+    else if(filterconfig.get("torrentDownload")==false&&type=="torrent"){
       nodeElement.setAttribute("class","torrent-quicksearch-hiddenresultitem")
     }
     else if(filterconfig.get("nzbDownload")==false&&type=="nzbget"){
@@ -577,11 +575,40 @@ function filterResults(nodeArray){
   else if (date!=null&&Date.parse(filterconfig.get("olderThan"))>date){
     nodeElement.setAttribute("class","torrent-quicksearch-hiddenresultitem")
   }
-    else{
-      nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+  
+  else{
+      nodeElement=imdbFilterResultsHelper(nodeElement)
 
     }
     
   }
   return nodeArray.filter((e)=>e.getAttribute("class","torrent-quicksearch-resultitem"))
+}
+function imdbFilterResultsHelper(nodeElement){
+  let imdbID=nodeElement.querySelectorAll(".torrent-quicksearch-resultcell")[7].textContent
+  let pageIMDB=document.querySelector("#torrent-quicksearch-imdbinfo").textContent
+  if(filterconfig.get("imdbFilter")==false){
+    nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+
+  }
+  else if( pageIMDB==imdbParserFail){
+    nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+  }
+  else if(imdbID==imdbParserFail){
+    nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+  }
+  else if(!imdbID){
+    nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+  }
+  else if(imdbID==pageIMDB){
+  nodeElement.setAttribute("class","torrent-quicksearch-resultitem")
+
+  }
+  else
+  {
+    nodeElement.setAttribute("class","torrent-quicksearch-hiddenresultitem")
+
+  }
+
+  return nodeElement
 }

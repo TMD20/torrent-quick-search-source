@@ -1,3 +1,70 @@
+//main Functions
+
+function openMainMenu() {
+  hideDisplay();
+  resetResultList();
+  resetSearchDOM();
+  GM_config.setValue("oldSearchProgram",GM_config.get("searchprogram"))
+  GM_config.setValue("oldSearchURL",GM_config.get("searchurl"))
+  GM_config.setValue("oldSearchAPI",GM_config.get("searchapi"))
+  document
+    .querySelector("#torrent-quicksearch-overlay")
+    .style.setProperty("--icon-size", `${iconLarge}%`);
+  document
+    .querySelector("#torrent-quicksearch-toggle")
+    .removeEventListener("mousedown", leftClickProcess);
+  document
+    .querySelector("#torrent-quicksearch-toggle")
+    .removeEventListener("mouseup", mouseUpProcess);
+
+  searchObj.cancel();
+}
+
+function closeMainMenu() {
+  document
+    .querySelector("#torrent-quicksearch-overlay")
+    .style.setProperty("--icon-size", `${iconSmall}%`);
+
+  document
+    .querySelector("#torrent-quicksearch-toggle")
+    .addEventListener("mousedown", leftClickProcess);
+  document
+    .querySelector("#torrent-quicksearch-toggle")
+    .addEventListener("mouseup", mouseUpProcess);
+}
+
+function saveMainMenu(){
+  let bool1=GM_config.getValue("oldSearchProgram","")!=GM_config.get("searchprogram")
+  let bool2=GM_config.getValue("oldSearchURL","")!=GM_config.get("searchurl")
+  let bool3=GM_config.getValue("oldSearchAPI","")!=GM_config.get("searchapi")
+  if(bool1 ||bool2||bool3){
+    alert("Search Settings Updated\nPlease Select Indexers")
+    GM_config.setValue("indexers",[])
+    GM_config.fields.indexers.wrapper.querySelector("button").click()
+  }
+  GM_config.setValue("oldSearchProgram",GM_config.get("searchprogram"))
+  GM_config.setValue("oldSearchURL",GM_config.get("searchurl"))
+  GM_config.setValue("oldSearchAPI",GM_config.get("searchapi"))
+  initFilterConfig()
+}
+function verifyConfig() {
+  if (
+    GM_config.get("searchapi", "null") == "null" ||
+    GM_config.get("searchurl", "null") == "null"
+  ) {
+    return false;
+  }
+
+  if (
+    GM_config.get("searchapi", "null") == "" ||
+    GM_config.get("searchurl", "null") == ""
+  ) {
+    return false;
+  }
+  return true;
+}
+
+//client Function
 function addNewClient(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -16,7 +83,7 @@ function replaceValues(oldSubmissionForm, newSubmissionForm) {
     });
 }
 
-function onSelectChange(event) {
+function onSelectClientType(event) {
   let replaceHelper = function (oldSubmissionForm, newSubmissionForm) {
     replaceValues(oldSubmissionForm, newSubmissionForm);
     oldSubmissionForm.parentElement.replaceChild(
@@ -180,7 +247,7 @@ function clientSubmissionGenerator(keys) {
   select.setAttribute("id", "clientType");
   select.setAttribute("name", "clientType");
 
-  select.addEventListener("change", onSelectChange);
+  select.addEventListener("change", onSelectClientType);
   let innerDiv = document.createElement("div");
   innerDiv.innerHTML = keys.reduce(
     (previous, curr) => previous + `<div>${options[curr]}</div><br>`,
@@ -340,53 +407,26 @@ function downloadClientNode(configId) {
 
   return retNode;
 }
-function openMainMenu() {
-  hideDisplay();
-  resetResultList();
-  resetSearchDOM();
-  GM_config.setValue("oldSearchProgram",GM_config.get("searchprogram"))
-  GM_config.setValue("oldSearchURL",GM_config.get("searchurl"))
-  GM_config.setValue("oldSearchAPI",GM_config.get("searchapi"))
-  document
-    .querySelector("#torrent-quicksearch-overlay")
-    .style.setProperty("--icon-size", `${iconLarge}%`);
-  document
-    .querySelector("#torrent-quicksearch-toggle")
-    .removeEventListener("mousedown", leftClickProcess);
-  document
-    .querySelector("#torrent-quicksearch-toggle")
-    .removeEventListener("mouseup", mouseUpProcess);
 
-  searchObj.cancel();
-}
 
-function closeMainMenu() {
-  document
-    .querySelector("#torrent-quicksearch-overlay")
-    .style.setProperty("--icon-size", `${iconSmall}%`);
 
-  document
-    .querySelector("#torrent-quicksearch-toggle")
-    .addEventListener("mousedown", leftClickProcess);
-  document
-    .querySelector("#torrent-quicksearch-toggle")
-    .addEventListener("mouseup", mouseUpProcess);
-}
+function getOptional(clientType){
+  switch (clientType) {    
+    case "Rtorrent":
+          return new Set(["clientLabel","undefined","clientUserName","clientPassword","clientDir"]);    
+    case "Qbittorrent":
+      return new Set(["clientCategory","undefined","clientUserName","clientPassword","clientDir","clientTags"]);         
+    case "Transmission":
+      return new Set(["clientCategory","undefined","clientUserName","clientPassword","clientTags"]);         
+      case "Nzbget":
+        return new Set(["undefined","clientUserName","clientPassword","clientTags"]); 
+        default:
+      return new Set(["undefined"]);      
+      } 
+    }  
 
-function saveMenu(){
-  let bool1=GM_config.getValue("oldSearchProgram","")!=GM_config.get("searchprogram")
-  let bool2=GM_config.getValue("oldSearchURL","")!=GM_config.get("searchurl")
-  let bool3=GM_config.getValue("oldSearchAPI","")!=GM_config.get("searchapi")
-  if(bool1 ||bool2||bool3){
-    alert("Search Settings Updated\nPlease Select Indexers")
-    GM_config.setValue("indexers",[])
-    GM_config.fields.indexers.wrapper.querySelector("button").click()
-  }
-  GM_config.setValue("oldSearchProgram",GM_config.get("searchprogram"))
-  GM_config.setValue("oldSearchURL",GM_config.get("searchurl"))
-  GM_config.setValue("oldSearchAPI",GM_config.get("searchapi"))
-  initFilterConfig()
-}
+//filter Functions
+
 
 function openFilterMenu(filterDocument) {
 document.querySelector("#torrent-quicksearch-box").style.display = "none";
@@ -401,6 +441,15 @@ document.querySelector("#torrent-quicksearch-filter").style.display = "none";
     .querySelector("#torrent-quicksearch-toggle")
     .removeEventListener("mouseup", mouseUpProcess);
   filterDocument.querySelector("#filterConfig_closeBtn").remove()
+  let saveButtonHolder=filterDocument.querySelector("#filterConfig_buttons_holder").cloneNode(true)
+  saveButtonHolder.setAttribute("id","#filterConfig_buttons_holder2")
+  saveButtonHolder.querySelector("button").style.textAlign="right"
+  saveButtonHolder.querySelector("button").addEventListener("click",()=>{filterconfig.save()})
+  filterDocument.querySelector("#filterConfig_wrapper").childNodes[0].after(saveButtonHolder)
+  
+ 
+
+
 
 }
 function closeFilterMenu() {
@@ -424,6 +473,10 @@ function saveFilterMenu(){
   filterconfig.close()
   closeFilterMenu()
 }
+
+
+//init functions
+let filterconfig=null
 
 function initMainConfig() {
   GM_config.init({
@@ -535,6 +588,13 @@ function initMainConfig() {
         'type': 'checkbox', // Makes this setting a text field
         'default': true, // Default value if user doesn't change it
       },
+      "imdbFilter":
+      {
+        'label': 'imdb Filter', // Appears next to field
+        'title': "Filter By Parse Page imdb\nIf present",
+        'type': 'checkbox', // Makes this setting a text field
+        'default': true, // Default value if user doesn't change it
+      },
       'olderThan': {
         'label': 'After: ',
         'type': 'date',
@@ -603,7 +663,7 @@ function initMainConfig() {
     events: {
       open: openMainMenu,
       close: closeMainMenu,
-      save:  saveMenu
+      save:  saveMainMenu
     },
     css: ` .torrent-quicksearch-downloadclients{
      border:solid black 5px;
@@ -636,11 +696,11 @@ function initFilterConfig(){
   let parent= document.createElement('div');
   let title=document.createElement('div');
   title.style.fontSize="20pt"
-  title.textContent="Temp Filter Settings"
+  title.textContent="Quick Filter Settings"
   parent.append(title)
   let subtitle=document.createElement('div');
   subtitle.style.fontSize="10pt"
-  subtitle.textContent="Change filter ettings for this search only"
+  subtitle.textContent="Resets to default on reload or toggle"
   parent.appendChild(subtitle)
   
   
@@ -735,13 +795,118 @@ function initFilterConfig(){
           'type': 'checkbox', // Makes this setting a text field
           'default': GM_config.get("nzbDownload"), // Default value if user doesn't change it
         },
+
+        "imdbFilter":
+        {
+          'label': 'imdb Filter', // Appears next to field
+          'title': "Filter By Parse Page imdb\nIf present",
+          'type': 'checkbox', // Makes this setting a text field
+          'default': GM_config.get("imdbFilter"), // Default value if user doesn't change it
+        },
+        "indexerVal":
+        {
+          'title': "Torrents",
+          'section':["Indexers"],
+          'type': 'indexers', // Makes this setting a text field
+      
+        },
     
     
   
   
     },
     'types':
+    
     {
+      indexers: {
+        default:GM_config.getValue("defaultIndexerVal",[]) ,
+        toNode: function(configId){
+        var field = this.settings,
+          id = this.id,
+          create = this.create,
+          retNode = create("div", {
+            className: "config_var",
+            id: configId + "_" + id + "_var",
+            title: field.title || "",
+          });
+          let indexerList=GM_config.getValue("defaultIndexerVal",[])
+          if (indexerList.length==0){
+            let h4=document.createElement("h4")
+            h4.textContent="No Indexers"
+            retNode.appendChild(h4)
+          }
+          let span=document.createElement("span")
+          let selectall=document.createElement("button")
+          selectall.setAttribute("id", "torrent-quicksearch-selectallindexers");
+          selectall.textContent="Select all" 
+          selectall.addEventListener("click",()=>{
+            Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=true)
+
+          })
+          let removeall=document.createElement("button")
+          removeall.setAttribute("id", "torrent-quicksearch-selectallindexers");
+          removeall.textContent="Remove all" 
+          removeall.addEventListener("click",()=>{
+            Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=false)
+          })
+          span.appendChild(selectall)
+          span.appendChild(removeall)
+          retNode.appendChild(span)
+          let form=document.createElement("form")
+          const set = new Set(filterconfig.get(`indexerVal`,[]).map((e)=>e["ID"]));
+          for(i in indexerList){
+            let checkbox=document.createElement("input")
+
+            checkbox.setAttribute("type","checkbox")
+            checkbox.setAttribute("ID",indexerList[i]["ID"])
+            checkbox.setAttribute("Name",indexerList[i]["Name"])
+            if (set.has(String(indexerList[i]["ID"]))){
+              checkbox.setAttribute("checked",true)
+            }
+            form.appendChild(checkbox)
+            let label=document.createElement("label")
+            label.setAttribute("for",indexerList[i]["Name"])
+            label.textContent=indexerList[i]["Name"]
+            form.appendChild(label)
+            let breakNode=document.createElement("br")
+            form.appendChild(breakNode)
+
+          }
+          retNode.appendChild(form)
+
+      
+          return retNode
+
+
+
+
+
+        
+        },
+        toValue: function () {
+          if (this.wrapper) {
+            let inputs = Array.from(this.wrapper.querySelectorAll('input')).filter((e)=>e.checked==true).map(
+              (e)=>{
+                return {"ID":e.getAttribute("ID"),"Name":e.getAttribute("Name")}
+              }
+              )
+              return inputs
+        }},
+        reset: function () {
+          const set = new Set(this.default.map((e)=>e["ID"]));
+         
+          this.wrapper.querySelectorAll('input').forEach((e)=>{
+            if (set.has(e.getAttribute("id"))){
+              e.checked=true
+            }
+          })
+
+        
+          
+
+
+          }
+        },
       'date': {
         'default': null,
           toNode: createDateNode,
@@ -770,233 +935,191 @@ function initFilterConfig(){
   });
 }
 
-let filterconfig=null
-function verifyConfig() {
-  if (
-    GM_config.get("searchapi", "null") == "null" ||
-    GM_config.get("searchurl", "null") == "null"
-  ) {
-    return false;
-  }
-
-  if (
-    GM_config.get("searchapi", "null") == "" ||
-    GM_config.get("searchurl", "null") == ""
-  ) {
-    return false;
-  }
-  return true;
-}
-
-function getOptional(clientType){
-  switch (clientType) {    
-    case "Rtorrent":
-          return new Set(["clientLabel","undefined","clientUserName","clientPassword","clientDir"]);    
-    case "Qbittorrent":
-      return new Set(["clientCategory","undefined","clientUserName","clientPassword","clientDir","clientTags"]);         
-    case "Transmission":
-      return new Set(["clientCategory","undefined","clientUserName","clientPassword","clientTags"]);         
-      case "Nzbget":
-        return new Set(["undefined","clientUserName","clientPassword","clientTags"]); 
-        default:
-      return new Set(["undefined"]);      
-      } 
-          }  
-  
-  
-
-  
- 
-
-
-          function editIndexerFactory(){
-            return async function editIndexers(e){
-              let indexerList= await getIndexers() ||[]
-              var gmc = new GM_configStruct({
-                id: 'torrent-quicksearch-indexers', 
-                title: "Torrent Quick Search Indexers", 
-               fields: {
-              indexers: {
-                type: "indexers",
-              }},
-              events:{
-                'save': function() { 
-                  alert("Indexers Updated"); 
-                  GM_config.fields.indexers.wrapper.querySelector("h4").textContent=`${GM_config.getValue(`indexers`,[]).length} Indexers Selected`
-                  if(GM_config.getValue("indexers",[]).length==0){
-                    alert("No Indexers Selected")
-                  }
-                  gmc.close()
-                  
-                },
-                "open":function(document){
-                  document.querySelector("#torrent-quicksearch-indexers_closeBtn").remove()
-                }
-              },
-              types: {
-                indexers: {
-                  default: null,
-                  toNode: function(configId){
-                    let searchprogram=GM_config.get("searchprogram", "")
-
-
-                  var field = this.settings,
-                    id = this.id,
-                    create = this.create,
-                    retNode = create("div", {
-                      className: "config_var",
-                      id: configId + "_" + id + "_var",
-                      title: field.title || "",
-                    });
-
-                    let h3=document.createElement("h3")
-                    h3.textContent=`${GM_config.fields.searchprogram.node.value} Indexers Selection`
-                    retNode.appendChild(h3)
-                    if (indexerList.length==0){
-                      let h4=document.createElement("h4")
-                      h4.textContent="No Indexers"
-                      retNode.appendChild(h4)
-                    }
-                    let span=document.createElement("span")
-                    let selectall=document.createElement("button")
-                    selectall.setAttribute("id", "torrent-quicksearch-selectallindexers");
-                    selectall.textContent="Select all" 
-                    selectall.addEventListener("click",()=>{
-                      Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=true)
-
-                    })
-                    let removeall=document.createElement("button")
-                    removeall.setAttribute("id", "torrent-quicksearch-selectallindexers");
-                    removeall.textContent="Remove all" 
-                    removeall.addEventListener("click",()=>{
-                      Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=false)
-                    })
-                    span.appendChild(selectall)
-                    span.appendChild(removeall)
-                    retNode.appendChild(span)
-                    let form=document.createElement("form")
-                    const set = new Set(GM_config.getValue(`indexers`,[]).map((e)=>e["ID"]));
-                    for(i in indexerList){
-                      let checkbox=document.createElement("input")
-
-                      checkbox.setAttribute("type","checkbox")
-                      checkbox.setAttribute("ID",indexerList[i]["ID"])
-                      checkbox.setAttribute("Name",indexerList[i]["Name"])
-                      if (set.has(String(indexerList[i]["ID"]))){
-                        checkbox.setAttribute("checked",true)
-                      }
-                      form.appendChild(checkbox)
-                      let label=document.createElement("label")
-                      label.setAttribute("for",indexerList[i]["Name"])
-                      label.textContent=indexerList[i]["Name"]
-                      form.appendChild(label)
-                      let breakNode=document.createElement("br")
-                      form.appendChild(breakNode)
-
-                    }
-                    retNode.appendChild(form)
-
-                
-                    
-                    return retNode
-
-
-
-
-
-                  
-                  },
-                  toValue: function () {
-                    let searchprogram=GM_config.get("searchprogram", "")
-                    if (this.wrapper) {
-                      let inputs = Array.from(this.wrapper.querySelectorAll('input')).filter((e)=>e.checked==true).map(
-                        (e)=>{
-                          return {"ID":e.getAttribute("ID"),"Name":e.getAttribute("Name")}
-                        }
-                        )
-                      GM_config.setValue(`indexers`,inputs)
-                  }},
-                  reset: function () {
-                    GM_config.setValue("indexerVal", "[]");
-                  },
-                }
-             }
-            }
-             
-             );
-              e.preventDefault()
-              e.stopPropagation()
-              gmc.open()
-            }
-           
-          }
-          
-          function editIndexersButtonNode(configId){
-            var field = this.settings,
-              id = this.id,
-              create = this.create,
-              retNode = create("div", {
-                className: "config_var",
-                id: configId + "_" + id + "_var2",
-                title: field.title || "",
-              });
-              let span=document.createElement("span")
-              let button=document.createElement("button")
-              let button2=document.createElement("button")
-              let indexCounter=document.createElement("h4")
-              indexCounter.textContent=`${GM_config.getValue(`indexers`,[]).length} Indexers Selected`
-              span.appendChild(button)
-              span.appendChild(button2)
-              span.appendChild(indexCounter)
-
-              retNode.appendChild(span)
-              button.setAttribute("id", "torrent-quicksearch-editIndexers");
-              button.textContent="Edit Indexers" 
-              button2.setAttribute("id", "torrent-quicksearch-testIndexer");
-              button2.addEventListener("click",testIndexerEvent)
-              button2.textContent="Test Search Settings" 
-              editIndexerEvent=editIndexerFactory()
-              button.addEventListener("click",editIndexerEvent)
-              return retNode    
-          }
-
-  function resetConfig(config){
-    let fields=config.fields
-    for (let i in fields){
-      let field=fields[i]
-      if(config.getValue(field.id)){
-        config.setValue(field.id,field.default)
-      }
-      else{
-        config.set(field.id,field.default)
-      }
+function resetConfig(config){
+  let fields=config.fields
+  for (let i in fields){
+    let field=fields[i]
+    if(config.getValue(field.id)){
+      config.setValue(field.id,field.default)
+    }
+    else{
+      config.set(field.id,field.default)
     }
   }
-          
-    
-  function createDateNode(configId){
-      var field = this.settings,
-      value = this.value,
-      id = this.id,
-      create = this.create,
-      retNode = create("div", {
-        className: "config_var",
-        id: configId + "_" + id + "_var",
-        title: field.title || "",
-      });
-      let input=document.createElement("input")
-      input.setAttribute("type","date")
-      input.setAttribute("name",id)
-      input.setAttribute("id",`${id}-torrent-quicksearch`)
-      input.value=value
-      let label=document.createElement("label")
-      label.textContent=field.label
-      label.setAttribute("for",`${id}-torrent-quicksearch`)
-      retNode.appendChild(label)
-      retNode.appendChild(input)   
-      return retNode;
-  }
+}
+        
+  
+function createDateNode(configId){
+    var field = this.settings,
+    value = this.value,
+    id = this.id,
+    create = this.create,
+    retNode = create("div", {
+      className: "config_var",
+      id: configId + "_" + id + "_var",
+      title: field.title || "",
+    });
+    let input=document.createElement("input")
+    input.setAttribute("type","date")
+    input.setAttribute("name",id)
+    input.setAttribute("id",`${id}-torrent-quicksearch`)
+    input.value=value
+    let label=document.createElement("label")
+    label.textContent=field.label
+    label.setAttribute("for",`${id}-torrent-quicksearch`)
+    retNode.appendChild(label)
+    retNode.appendChild(input)   
+    return retNode;
+}
 
+
+//indexer function
+function editIndexerFactory(){
+  return async function editIndexers(e){
+    let indexerList= await getIndexers() ||[]
+    var gmc = new GM_configStruct({
+      id: 'torrent-quicksearch-indexers', 
+      title: "Torrent Quick Search Indexers", 
+     fields: {
+    indexers: {
+      type: "indexers",
+    }},
+    events:{
+      'save': function() { 
+        alert("Indexers Updated"); 
+        GM_config.fields.indexers.wrapper.querySelector("h4").textContent=`${GM_config.getValue(`defaultIndexerVal`,[]).length} Indexers Selected`
+        if(GM_config.getValue("defaultIndexerVal",[]).length==0){
+          alert("No Indexers Selected")
+        }
+        gmc.close()
+        
+      },
+      "open":function(document){
+        document.querySelector(".reset").remove()
+
+        document.querySelector("#torrent-quicksearch-indexers_closeBtn").remove()
+      }
+    },
+    types: {
+      indexers: {
+        default: [],
+        toNode: function(configId){
+        var field = this.settings,
+          id = this.id,
+          create = this.create,
+          retNode = create("div", {
+            className: "config_var",
+            id: configId + "_" + id + "_var",
+            title: field.title || "",
+          });
+
+          let h3=document.createElement("h3")
+          h3.textContent=`${GM_config.fields.searchprogram.node.value} Indexers Selection`
+          retNode.appendChild(h3)
+          if (indexerList.length==0){
+            let h4=document.createElement("h4")
+            h4.textContent="No Indexers"
+            retNode.appendChild(h4)
+          }
+          let span=document.createElement("span")
+          let selectall=document.createElement("button")
+          selectall.setAttribute("id", "torrent-quicksearch-selectallindexers");
+          selectall.textContent="Select all" 
+          selectall.addEventListener("click",()=>{
+            Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=true)
+
+          })
+          let removeall=document.createElement("button")
+          removeall.setAttribute("id", "torrent-quicksearch-selectallindexers");
+          removeall.textContent="Remove all" 
+          removeall.addEventListener("click",()=>{
+            Array.from(this.wrapper.querySelectorAll('input')).forEach((e)=>e.checked=false)
+          })
+          span.appendChild(selectall)
+          span.appendChild(removeall)
+          retNode.appendChild(span)
+          let form=document.createElement("form")
+          const set = new Set(GM_config.getValue(`defaultIndexerVal`,[]).map((e)=>e["ID"]));
+          for(i in indexerList){
+            let checkbox=document.createElement("input")
+
+            checkbox.setAttribute("type","checkbox")
+            checkbox.setAttribute("ID",indexerList[i]["ID"])
+            checkbox.setAttribute("Name",indexerList[i]["Name"])
+            if (set.has(String(indexerList[i]["ID"]))){
+              checkbox.setAttribute("checked",true)
+            }
+            form.appendChild(checkbox)
+            let label=document.createElement("label")
+            label.setAttribute("for",indexerList[i]["Name"])
+            label.textContent=indexerList[i]["Name"]
+            form.appendChild(label)
+            let breakNode=document.createElement("br")
+            form.appendChild(breakNode)
+
+          }
+          retNode.appendChild(form)
+
+      
+          return retNode
+
+
+
+
+
+        
+        },
+        toValue: function () {
+          if (this.wrapper) {
+            let inputs = Array.from(this.wrapper.querySelectorAll('input')).filter((e)=>e.checked==true).map(
+              (e)=>{
+                return {"ID":e.getAttribute("ID"),"Name":e.getAttribute("Name")}
+              }
+              )
+            GM_config.setValue(`defaultIndexerVal`,inputs)
+        }},
+
+      }
+   }
+  }
+   
+   );
+    e.preventDefault()
+    e.stopPropagation()
+    gmc.open()
+  }
+ 
+}
+function editIndexersButtonNode(configId){
+  var field = this.settings,
+    id = this.id,
+    create = this.create,
+    retNode = create("div", {
+      className: "config_var",
+      id: configId + "_" + id + "_var2",
+      title: field.title || "",
+    });
+    let span=document.createElement("span")
+    let button=document.createElement("button")
+    let button2=document.createElement("button")
+    let indexCounter=document.createElement("h4")
+    indexCounter.textContent=`${GM_config.getValue(`defaultIndexerVal`,[]).length} Indexers Selected`
+    span.appendChild(button)
+    span.appendChild(button2)
+    span.appendChild(indexCounter)
+
+    retNode.appendChild(span)
+    button.setAttribute("id", "torrent-quicksearch-editIndexers");
+    button.textContent="Edit Indexers" 
+    button2.setAttribute("id", "torrent-quicksearch-testIndexer");
+    button2.addEventListener("click",testIndexerEvent)
+    button2.textContent="Test Search Settings" 
+    editIndexerEvent=editIndexerFactory()
+    button.addEventListener("click",editIndexerEvent)
+    return retNode    
+}
+
+ 
  
 
      

@@ -1,4 +1,4 @@
-function searchIndexer(indexerObj, imdb, total, count) {
+function searchIndexer(indexerObj, total, count) {
   if (controller.signal.aborted) {
     return Promise.reject(AbortError);
   }
@@ -20,7 +20,7 @@ function searchIndexer(indexerObj, imdb, total, count) {
     msg = `Results fetched from ${indexerObj["Name"]}:${
       count.length + 1
     }/${total} Indexers completed`;
-    data = data.filter((e) => imdbFilter(e, imdbCleanup(imdb)));
+    data.slice(0,100).forEach((e) => e["ImdbId"]=imdbCleanup(e["ImdbId"]));
     data.forEach((e) => {
       if (e["ImdbId"] == 0 || e["ImdbId"] == null) {
         e["ImdbId"] = imdbParserFail;
@@ -54,6 +54,7 @@ async function searchProwlarrIndexer(indexer) {
         return {
           Title: e["title"],
           Indexer: e["indexer"],
+          IndexerID:e["indexerId"],
           Grabs: e["grabs"],
           PublishDate: e["publishDate"],
           Size: e["size"],
@@ -164,6 +165,7 @@ async function searchHydra2Indexer(indexer) {
           let t = [
             ["Title", "title", "textContent"],
             ["Indexer", "[name=hydraIndexerName]", "null"],
+            ["IndexerID", "[name=hydraIndexerName]", "null"],
             ["Leechers", "[name=peers]", "null"],
             ["Seeders", "[name=seeders]", "null"],
             ["Cost", "[name=downloadvolumefactor]", "null"],
@@ -179,14 +181,16 @@ async function searchHydra2Indexer(indexer) {
           for (let i in t) {
             let key = t[i][0];
             let node = e.querySelector(t[i][1]);
-            let textContent = t[i][2] == "textContent";
+            // let textContent = t[i][2] == "textContent";
             if (!node) {
               continue;
             }
 
-            if (textContent) {
-              out[key] = node.textContent;
-            } else if (key == "Cost") {
+            // if (textContent) {
+            //   out[key] = node.textContent;
+            // } 
+            
+            if (key == "Cost") {
               out[key] = `${(1 - node.getAttribute("value")) * 100}% Freeleech`;
             } else {
               out[key] = node.getAttribute("value");

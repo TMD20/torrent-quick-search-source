@@ -33,16 +33,6 @@ function imdbCleanup(imdb) {
   return imdb;
 }
 
-function imdbFilter(entry, imdb) {
-  if (imdb === null || imdb === "IMDB Not Provided") {
-    return true;
-  } else if (entry["ImdbId"] == 0) {
-    return true;
-  } else if (entry["ImdbId"] == imdb) {
-    return true;
-  }
-  return false;
-}
 async function tmdbExternalMedia(type, id) {
   let key = tmdbapi
   let baseURL = new URL(

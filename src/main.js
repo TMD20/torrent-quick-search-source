@@ -27,7 +27,6 @@ let searchObj = {
 
       document.querySelector("#torrent-quicksearch-msgnode").textContent =
         "Fetching Results From Indexers";
-      let imdb = await setIMDBNode();
       setTitleNode();
       //reset count
       let count = [];
@@ -39,7 +38,7 @@ let searchObj = {
         let newData = await Promise.allSettled(
           indexers
             .splice(0, Math.min(indexers.length, x))
-            .map((e) => searchIndexer(e, imdb, length, count))
+            .map((e) => searchIndexer(e, length, count))
         );
         data = [...data, ...newData];
       }
@@ -74,7 +73,6 @@ let searchObj = {
   async doSearch() {
     showDisplay();
     recreateController();
-    resetConfig(filterconfig)
     await this.setup();
 
     setTimeout(() => {
@@ -135,6 +133,8 @@ let searchObj = {
       content.style.display === ""
     ) {
       let customSearch = false;
+      //reset on toggle
+      resetConfig(filterconfig)
       await this.doSearch();
     }
   },
