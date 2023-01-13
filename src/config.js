@@ -445,6 +445,14 @@ document.querySelector("#torrent-quicksearch-filter").style.display = "none";
   saveButtonHolder.setAttribute("id","#filterConfig_buttons_holder2")
   saveButtonHolder.querySelector("button").style.textAlign="right"
   saveButtonHolder.querySelector("button").addEventListener("click",()=>{filterconfig.save()})
+  saveButtonHolder.querySelector("button").setAttribute("id","filterConfig_saveBtn2")
+  saveButtonHolder.querySelector("a").addEventListener("click",(e)=>{
+    e.preventDefault()
+    e.stopPropagation()
+    filterconfig.reset()
+  })
+
+  saveButtonHolder.querySelector("a").setAttribute("id","filterConfig_resetLink2")
   filterDocument.querySelector("#filterConfig_wrapper").childNodes[0].after(saveButtonHolder)
   
  
