@@ -512,6 +512,12 @@ function initMainConfig() {
         title: "Should Results From Current Site be Filtered Out",
         default: "false",
       },
+      maxResults: {
+        label: "Max Results/Indexer",
+        type: "int",
+        title: "Max Results Per Index to Display",
+        default: 100,
+      },
 
       'minSize': // This is the id of the field
       {
@@ -603,6 +609,7 @@ function initMainConfig() {
         'label': 'Before: ',
         'type': 'date',
       },
+ 
 
       fontsize: {
         label: "Font Size",
@@ -611,6 +618,8 @@ function initMainConfig() {
         title: "fontsize",
         default: 12,
       },
+
+   
   
 
       downloadclients: {

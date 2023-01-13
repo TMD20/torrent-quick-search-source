@@ -90,8 +90,13 @@ async function clientFactorySendHelper(releaseData,clientData) {
       case "Sonarr":
          return (async()=>{
           releaseData=await getSonarrReleaseData(releaseData)
-          await addSonarrSeries(releaseData, clientData)
-          data=await sendSonarrClient(releaseData, clientData);
+  
+            await addSonarrSeries(releaseData, clientData)
+      
+            let data=await sendSonarrClient(releaseData, clientData);
+        
+          
+  
           if(data){
             arrNotificationHelper(data,"sonarr");
           }
@@ -174,80 +179,60 @@ async function addSonarrSeries(releaseData, clientData){
   if (releaseData["TvdbId"]==null){
     return
   }
-  let res = await fetch(
-    searchSeriesSonarrURL(releaseData,clientData["TvdbId"]),
-    {
-      method: "get",
-      semaphore: false,
-    }
-  );
-
-  if (res.status != 200) {
-    console.log(res.responseText)
-    return;
-  }
+  try{
+    let res = await fetch(
+      searchSeriesSonarrURL(releaseData,clientData["TvdbId"]),
+      {
+        method: "get",
+        semaphore: false,
+      }
+    );
   
-
-  let res2 = await fetch(
-    addSeriesSonarrURL(clientData),
-    {
-      method: "post",
-      data: JSON.stringify(JSON.parse(res.responseText)[0]),
-      semaphore: false,
+    if (res.status != 200) {
+      console.log(res.responseText)
+      return;
     }
-  );
-
-  console.log(res2.responseText)
+    
+  
+    let res2 = await fetch(
+      addSeriesSonarrURL(clientData),
+      {
+        method: "post",
+        data: JSON.stringify(JSON.parse(res.responseText)[0]),
+        semaphore: false,
+      }
+    );
+  
+    console.log(res2.responseText)
+  
+  }
+  catch{null}
 
 }
 
 
-async function addSonarrSeries(releaseData, clientData){
-  if (releaseData["TvdbId"]==null){
-    return
-  }
-  let res = await fetch(
-    searchSeriesSonarrURL(releaseData,clientData["TvdbId"]),
-    {
-      method: "get",
-      semaphore: false,
-    }
-  );
-
-  if (res.status != 200) {
-    console.log(res.responseText)
-    return;
-  }
-  
-
-  let res2 = await fetch(
-    addSeriesSonarrURL(clientData),
-    {
-      method: "post",
-      data: JSON.stringify(JSON.parse(res.responseText)[0]),
-      semaphore: false,
-    }
-  );
-
-  console.log(res2.responseText)
-
-}
 
 async function sendSonarrClient(releaseData, clientData) {
-  let res = await fetch(
-    releasePushSonarrURL(clientData),
-    {
-      method: "post",
-      data: JSON.stringify(releaseData),
-      semaphore: false,
+  try{
+    let res = await fetch(
+      releasePushSonarrURL(clientData),
+      {
+        method: "post",
+        data: JSON.stringify(releaseData),
+        semaphore: false,
+      }
+    );
+  
+    if (res.status != 200) {
+      GM.notification(res.responseText, program, searchIcon);
+      return
     }
-  );
-
-  if (res.status != 200) {
-    GM.notification(res.responseText, program, searchIcon);
-    return
+    return JSON.parse(res.responseText);
   }
-  return JSON.parse(res.responseText);
+  catch{
+    null
+  }
+ 
 } 
 
 async function getSonarrReleaseData(releaseData){
@@ -268,52 +253,65 @@ async function getRadarrReleaseData(releaseData){
     return releaseData
 }
 async function sendRadarrClient(releaseData, clientData) {
-  let res = await fetch(
-    getRadarrURL(clientData),
-
-    {
-      method: "post",
-      data: JSON.stringify(releaseData),
-      headers: { "content-type": "application/json" },
-      semaphore: false,
+  try{
+    let res = await fetch(
+      getRadarrURL(clientData),
+  
+      {
+        method: "post",
+        data: JSON.stringify(releaseData),
+        headers: { "content-type": "application/json" },
+        semaphore: false,
+      }
+    );
+  
+    if (res.status != 200) {
+      GM.notification(res.responseText, program, searchIcon);
     }
-  );
-
-  if (res.status != 200) {
-    GM.notification(res.responseText, program, searchIcon);
+    return JSON.parse(res.responseText);
+  
   }
-  return JSON.parse(res.responseText);
+  catch{
+    null
+  }
+  
 }
 
 async function addRadarrMovie(releaseData, clientData){
-  if (releaseData["ImdbId"]==null || releaseData["ImdbId"]==null){
-    return
-  }
-  let res = await fetch(
-    searchMoviesRadarrURL(releaseData,clientData),
-    {
-      method: "get",
-      semaphore: false,
+  try{
+    if (releaseData["ImdbId"]==null || releaseData["ImdbId"]==null){
+      return
     }
-  );
-
-  if (res.status != 200) {
-    console.log(res.responseText)
-    return;
+    let res = await fetch(
+      searchMoviesRadarrURL(releaseData,clientData),
+      {
+        method: "get",
+        semaphore: false,
+      }
+    );
+  
+    if (res.status != 200) {
+      console.log(res.responseText)
+      return;
+    }
+    
+  
+    let res2 = await fetch(
+      addMoviesRadarrURL(clientData),
+      {
+        method: "post",
+        headers: { "content-type": "application/json" },
+        data: JSON.stringify(JSON.parse(res.responseText)[0]),
+        semaphore: false,
+      }
+    );
+  
+    console.log(res2.responseText)
+  }
+  catch{
+    null
   }
   
-
-  let res2 = await fetch(
-    addMoviesRadarrURL(clientData),
-    {
-      method: "post",
-      headers: { "content-type": "application/json" },
-      data: JSON.stringify(JSON.parse(res.responseText)[0]),
-      semaphore: false,
-    }
-  );
-
-  console.log(res2.responseText)
 
 }
 
@@ -376,6 +374,7 @@ function getRtorrentArgs(clientData){
 }
 
 async function sendRtorrentClient(releaseData, clientData) {
+  
   let t = getRtorrentxml(
     releaseData["DownloadUrl"],
     getRtorrentArgs(clientData),

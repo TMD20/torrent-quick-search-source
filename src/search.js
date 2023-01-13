@@ -20,7 +20,7 @@ function searchIndexer(indexerObj, total, count) {
     msg = `Results fetched from ${indexerObj["Name"]}:${
       count.length + 1
     }/${total} Indexers completed`;
-    data.slice(0,100).forEach((e) => e["ImdbId"]=imdbCleanup(e["ImdbId"]));
+    data.slice(0,GM_config.get(`maxResults`,100)).forEach((e) => e["ImdbId"]=imdbCleanup(e["ImdbId"]));
     data.forEach((e) => {
       if (e["ImdbId"] == 0 || e["ImdbId"] == null) {
         e["ImdbId"] = imdbParserFail;
