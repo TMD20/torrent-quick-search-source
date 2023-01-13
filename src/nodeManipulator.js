@@ -185,7 +185,7 @@ function createMainDOM() {
   <div id="torrent-quicksearch-custombox">
     <div>
     <input type="text" id="torrent-quicksearch-customsearch" placeholder="title">
-    <button id="torrent-quicksearch-customsearchbutton">Custom Search</button>
+    <button id="torrent-quicksearch-customsearchbutton">Manual Search</button>
   </div>
 </div>
 <div id="torrent-quicksearch-resultheader"></div>
