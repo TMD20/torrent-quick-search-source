@@ -381,6 +381,7 @@ function createMainDOM() {
 
   .torrent-quicksearch-resultitem{
     font-size:${GM_config.get("fontsize", 12)}px;
+    border:1px solid black;
   }
 
   .torrent-quicksearch-hiddenresultitem{
