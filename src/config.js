@@ -717,7 +717,7 @@ function initFilterConfig(){
   parent.append(title)
   let subtitle=document.createElement('div');
   subtitle.style.fontSize="10pt"
-  subtitle.textContent="Resets to default on reload or toggle"
+  subtitle.textContent="Resets to default on page reload or search toggle"
   parent.appendChild(subtitle)
   
   
