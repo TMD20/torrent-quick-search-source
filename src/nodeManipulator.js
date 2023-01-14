@@ -368,7 +368,7 @@ function createMainDOM() {
   scrollbar-color: white;
   overflow:scroll;
   width:100%;
-  height:calc(100% - ((${GM_config.get("fontsize", 12)}px) + px)*(4/16));
+  height:calc(100% - 7vh);
 
 }
 
@@ -409,7 +409,7 @@ function createMainDOM() {
   #torrent-quicksearch-resultheader{
 background-color: #B1D79E;
   font-size:${GM_config.get("fontsize", 12) + 2}px;
-      height:calc(((${GM_config.get("fontsize", 12)}em) + 2em)*(2/16));
+      height:5vh;
 
   }
 
