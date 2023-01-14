@@ -4,7 +4,7 @@ function getTitle() {
     if (currentValue==null){
       return accumulator
     }
-    return accumulator+currentValue[siteParser["titleAttrib"]]
+    return `${accumulator} ${currentValue[siteParser["titleAttrib"]]}`
   },"")
     
   title = titleCleanup(title);

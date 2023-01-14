@@ -31,9 +31,9 @@ let infoParser = {
   },
 
   "beyond-hd": {
-    title: "h1[class=movie-heading]",
+    title: ".bhd-title-h1>a",
     titleAttrib: "textContent",
-    imdb: "ul[class*=movie-details]>li>span>a[href*=imdb]",
+    imdb: "[title=IMDB]",
     imdbAttrib: "href",
   },
   imdb: {

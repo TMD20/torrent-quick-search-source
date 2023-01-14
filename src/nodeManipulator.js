@@ -188,8 +188,9 @@ function createMainDOM() {
     <button id="torrent-quicksearch-customsearchbutton">Manual Search</button>
   </div>
 </div>
-<div id="torrent-quicksearch-resultheader"></div>
   </div>
+  <div id="torrent-quicksearch-resultheader"></div>
+
   <div id="torrent-quicksearch-resultlist">
   </div>
 
@@ -287,6 +288,7 @@ function createMainDOM() {
   overflow:hidden;
   border:solid black 5px;
   }
+  
 
 
   #torrent-quicksearch-msgnode{
@@ -299,9 +301,6 @@ function createMainDOM() {
       background-color:#FFFFFF;
       width:calc(var(--grid-size)*${rowSplit});
          pointer-events:all;
-         height:calc(((${GM_config.get("fontsize", 12)}em) + 2em) * (2/16));
-
-
    }
 
     #torrent-quicksearch-custombox>div {
@@ -318,7 +317,7 @@ function createMainDOM() {
 
    }
     #torrent-quicksearch-custombox>div >button {
-       margin-left:0%;
+       margin-left:1.5%;
 
 
    }
@@ -352,15 +351,28 @@ function createMainDOM() {
   width:100%;
 }
 
-  #torrent-quicksearch-content>div:nth-child(2) {
+#torrent-quicksearch-content>div:nth-child(3)::-webkit-scrollbar-track {
+  background-color:white;
+  -webkit-box-shadow:none;    
+  margin-top:5px;
+  width:5px;
+  height:5px
+}
+
+#torrent-quicksearch-content>div:nth-child(3)::-webkit-scrollbar-thumb {
+  background-color:#938b8b;
+  -webkit-box-shadow:none;   
+}
+
+  #torrent-quicksearch-content>div:nth-child(3) {
   scrollbar-color: white;
   overflow:scroll;
   width:100%;
-  height:calc(100% - ((${GM_config.get("fontsize", 12)}em) + 2em)*(4/16));
+  height:calc(100% - ((${GM_config.get("fontsize", 12)}px) + px)*(4/16));
 
 }
 
-    #torrent-quicksearch-content>div:nth-child(1) {
+    #torrent-quicksearch-content>div:nth-child(2) {
   width:100%;
    background-color: #B1D79E;
 }
@@ -426,7 +438,20 @@ white-space: nowrap;
  font-size:${GM_config.get("fontsize", 12) + 2}px;
 font-weight: bold;
        width:100%;
+       -webkit-border-radius: 5px;
+       -moz-border-radius: 5px;
+       border-radius: 5px;
+       background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.16, rgb(207, 207, 207)), color-stop(0.79, rgb(252, 252, 252)));
+       background-image: -moz-linear-gradient(center bottom, rgb(207, 207, 207) 16%, rgb(252, 252, 252) 79%);
+       background-image: linear-gradient(to top, rgb(207, 207, 207) 16%, rgb(252, 252, 252) 79%); 
+       padding: 3px;
+       border: 1px solid #000;
+       color: black;
+       text-decoration: none;
 
+}
+.torrent-quicksearch-clientSelect>options {
+background-color:white
 }
 
 
@@ -452,10 +477,7 @@ font-weight: bold;
     color: white;
   }
 }
-  ::-webkit-scrollbar-thumb{
-  background-color:white;
-
-  }
+ 
   /* torrent-quicksearch-tooltip container */
 .torrent-quicksearch-tooltip {
   position: relative;
