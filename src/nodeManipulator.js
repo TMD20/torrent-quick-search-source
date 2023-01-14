@@ -368,7 +368,7 @@ function createMainDOM() {
   scrollbar-color: white;
   overflow:scroll;
   width:100%;
-  height:calc(100% - 7vh);
+  height:calc(100% - 9vh);
 
 }
 

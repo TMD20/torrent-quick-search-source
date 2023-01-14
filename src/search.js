@@ -20,15 +20,20 @@ function searchIndexer(indexerObj, total, count) {
     msg = `Results fetched from ${indexerObj["Name"]}:${
       count.length + 1
     }/${total} Indexers completed`;
-    data.slice(0,GM_config.get(`maxResults`,100)).forEach((e) => e["ImdbId"]=imdbCleanup(e["ImdbId"]));
+    
+    data=data.slice(0,GM_config.get(`maxResults`,100))
+
+    data.forEach((e) => e["ImdbId"]=imdbCleanup(e["ImdbId"]));
     data.forEach((e) => {
       if (e["ImdbId"] == 0 || e["ImdbId"] == null) {
         e["ImdbId"] = imdbParserFail;
       }
     });
-    data = data.filter((e) => currSiteFilter(e["InfoUrl"]));
-
-    addResultsTable(data);
+    let dataCopy = [...data];
+    while (dataCopy.length) {
+    addResultsTable(dataCopy.splice(0, Math.min(dataCopy.length, 5))
+    )
+    }
     count.push(indexerObj["ID"]);
     document.querySelector("#torrent-quicksearch-msgnode").textContent = msg;
     console.log(msg);

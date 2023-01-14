@@ -116,12 +116,12 @@ let searchObj = {
           "Finished"),
       1000
     );
-    this.removemsgnodeID = setTimeout(() => {
-      (document.querySelector("#torrent-quicksearch-msgnode").style.display =
-        "none"),
-        3000;
-      document.querySelector("#torrent-quicksearch-msgnode").textContent = "";
-    });
+    // this.removemsgnodeID = setTimeout(() => {
+    //   (document.querySelector("#torrent-quicksearch-msgnode").style.display =
+    //     "none"),
+    //     3000;
+    //   document.querySelector("#torrent-quicksearch-msgnode").textContent = "";
+    // });
   },
   async toggleSearch() {
     let content = document.querySelector("#torrent-quicksearch-box");
