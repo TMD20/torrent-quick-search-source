@@ -374,12 +374,6 @@ function getRtorrentArgs(clientData){
 }
 
 async function sendRtorrentClient(releaseData, clientData) {
-  
-  let t = getRtorrentxml(
-    releaseData["DownloadUrl"],
-    getRtorrentArgs(clientData),
-    getRtorrentMethod(clientData)
-  );
   let res = await fetch(getRtorrentURL(clientData), {
     data: getRtorrentxml(
       releaseData["DownloadUrl"],
