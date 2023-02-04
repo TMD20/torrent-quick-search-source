@@ -118,7 +118,7 @@ async function clientFactorySendHelper(releaseData,clientData) {
          return sendRtorrentClient(releaseData, clientData);
         case "Qbittorrent":
           return (async()=>{
-            let sid=await getQbittorrentSID(getientData)
+            let sid=await getQbittorrentSID(clientData)
             if (sid){
               await qbittorrentAddTorrents(releaseData,clientData)
             }
